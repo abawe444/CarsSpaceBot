@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
   deploy:
@@ -18,5 +19,44 @@ jobs:
           host: ${{ secrets.VPS_IP }}
           username: ${{ secrets.VPS_USERNAME }}
           key: ${{ secrets.SSH_S_K }}
-          source: "."
+          source: "app.js,package.json,package-lock.json,.env.example,public,server,views,storage"
           target: "/srv/apps/carsspacebot/source"
+
+      - name: Install dependencies and restart app
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_IP }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.SSH_S_K }}
+          script: |
+            set -e
+            APP_ROOT="/srv/apps/carsspacebot"
+            APP_DIR="$APP_ROOT/source"
+            SHARED_ENV="$APP_ROOT/shared/.env"
+
+            mkdir -p "$APP_DIR" "$APP_ROOT/shared" "$APP_ROOT/logs"
+
+            if ! command -v node >/dev/null 2>&1; then
+              apt-get update
+              apt-get install -y nodejs npm
+            fi
+
+            if ! command -v pm2 >/dev/null 2>&1; then
+              npm install -g pm2
+            fi
+
+            if [ ! -f "$SHARED_ENV" ]; then
+              cp "$APP_DIR/.env.example" "$SHARED_ENV"
+            fi
+
+            ln -sfn "$SHARED_ENV" "$APP_DIR/.env"
+            cd "$APP_DIR"
+            npm ci --omit=dev
+
+            if pm2 describe carsspacebot >/dev/null 2>&1; then
+              pm2 restart carsspacebot --update-env
+            else
+              pm2 start app.js --name carsspacebot
+            fi
+
+            pm2 save
