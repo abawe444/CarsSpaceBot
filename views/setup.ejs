@@ -1,0 +1,149 @@
+﻿<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>الإعداد الأولي - <%= appName %></title>
+  <link rel="stylesheet" href="/public/css/style.css" />
+  <link rel="stylesheet" href="/public/css/dashboard.css" />
+</head>
+<body data-page="setup">
+  <div class="bg-shape bg-shape-1"></div>
+  <div class="bg-shape bg-shape-2"></div>
+
+  <main class="main" style="margin-right:0;max-width:1100px;margin-inline:auto;">
+    <header class="topbar glass">
+      <div>
+        <h1>الإعداد الأولي للنظام</h1>
+        <p class="sub">جهّز المساعد خلال دقائق قبل العرض الإداري</p>
+      </div>
+      <div class="top-actions">
+        <span id="setupWhatsappStatus" class="status-pill danger">غير متصل بواتساب</span>
+        <span id="setupProviderStatus" class="status-pill warning">مزود الذكاء غير مختبر</span>
+      </div>
+    </header>
+
+    <section class="panel glass">
+      <div class="wizard-steps" id="wizardSteps">
+        <button class="wiz-step active" data-step="1">1. بيانات الشركة</button>
+        <button class="wiz-step" data-step="2">2. المواقع</button>
+        <button class="wiz-step" data-step="3">3. مزود الذكاء</button>
+        <button class="wiz-step" data-step="4">4. شخصية المساعد</button>
+        <button class="wiz-step" data-step="5">5. اتصال واتساب</button>
+      </div>
+    </section>
+
+    <section class="panel glass" id="step1">
+      <h3>بيانات الشركة</h3>
+      <form id="setupCompanyForm" class="settings-grid">
+        <label>اسم الشركة<input name="company_name" required /></label>
+        <label>رقم التواصل<input name="contact_number" required /></label>
+        <label class="full">وصف مجال العمل<textarea name="business_description" rows="3"></textarea></label>
+        <label>المدير العام<input name="general_manager" /></label>
+        <label>مسؤول جهة الشركة<input name="company_responsible" /></label>
+        <label>مدير المركز<input name="center_manager" /></label>
+        <button type="submit" class="btn full">حفظ بيانات الشركة</button>
+      </form>
+    </section>
+
+    <section class="panel glass hidden-step" id="step2">
+      <h3>المواقع والفروع</h3>
+      <form id="setupLocationsForm" class="settings-grid">
+        <label>عنوان موقع الشركة<input name="company_location_title" /></label>
+        <label>رابط موقع الشركة<input name="company_location_url" /></label>
+        <label>عنوان موقع المركز<input name="center_location_title" /></label>
+        <label>رابط موقع المركز<input name="center_location_url" /></label>
+        <button type="submit" class="btn full">حفظ المواقع</button>
+      </form>
+    </section>
+
+    <section class="panel glass hidden-step" id="step3">
+      <h3>مزود الذكاء الاصطناعي</h3>
+      <form id="setupProviderForm" class="settings-grid">
+        <label>المزوّد
+          <select name="provider" id="providerSelect">
+            <option value="rules_only">rules_only</option>
+            <option value="openai">openai</option>
+            <option value="openrouter">openrouter</option>
+            <option value="deepseek">deepseek</option>
+            <option value="grok">grok</option>
+            <option value="google">google</option>
+            <option value="custom_openai_compatible">custom_openai_compatible</option>
+          </select>
+        </label>
+        <label>API Key<input name="apiKey" id="providerApiKey" placeholder="أدخل المفتاح (اختياري في rules_only)" /></label>
+        <label>Model<input name="model" id="providerModel" /></label>
+        <label>Base URL<input name="baseUrl" id="providerBaseUrl" /></label>
+        <label>Temperature<input type="number" step="0.1" name="temperature" value="0.3" /></label>
+        <label>Max Output Tokens<input type="number" name="maxOutputTokens" value="250" /></label>
+        <label>AI Mode
+          <select name="aiMode">
+            <option value="rules_first">rules_first</option>
+            <option value="rules_only">rules_only</option>
+            <option value="ai_first">ai_first</option>
+            <option value="ai_only">ai_only</option>
+          </select>
+        </label>
+        <label>تفعيل الذكاء
+          <select name="enabled"><option value="true">ON</option><option value="false">OFF</option></select>
+        </label>
+        <div class="full actions-row">
+          <button type="button" class="btn warning" id="testProviderBtn">اختبار الاتصال</button>
+          <button type="submit" class="btn">حفظ إعدادات المزوّد</button>
+        </div>
+      </form>
+      <div id="providerTestResult" class="test-output" style="margin-top:10px;">لم يتم اختبار الاتصال بعد</div>
+    </section>
+
+    <section class="panel glass hidden-step" id="step4">
+      <h3>شخصية المساعد</h3>
+      <form id="setupAssistantForm" class="settings-grid">
+        <label>اسم المساعد<input name="assistant_name" /></label>
+        <label>نبرة الرد
+          <select name="assistant_tone">
+            <option>رسمي</option><option>مختصر</option><option>ودود</option><option>مبيعات</option><option>دعم فني</option>
+          </select>
+        </label>
+        <label class="full">System Prompt<textarea name="assistant_prompt" rows="8"></textarea></label>
+        <button type="submit" class="btn full">حفظ شخصية المساعد</button>
+      </form>
+    </section>
+
+    <section class="panel glass hidden-step" id="step5">
+      <h3>اتصال واتساب</h3>
+      <div class="connection-wrap">
+        <div class="connection-box">
+          <div id="setupQrArea" class="qr-area">بانتظار مسح QR</div>
+          <p id="setupQrStatusText" class="status-text">غير متصل بواتساب</p>
+          <div class="actions-row">
+            <button class="btn" id="setupReconnectBtn">إعادة الاتصال</button>
+            <button class="btn warning" id="setupResetSessionBtn">حذف الجلسة</button>
+            <button class="btn success-btn" id="finishSetupBtn">إنهاء الإعداد وفتح لوحة التحكم</button>
+          </div>
+        </div>
+        <div class="connection-guide">
+          <h4>خطوات الربط</h4>
+          <ol>
+            <li>افتح واتساب أو واتساب Business</li>
+            <li>ادخل إلى الأجهزة المرتبطة</li>
+            <li>اختر ربط جهاز</li>
+            <li>امسح الرمز الظاهر هنا</li>
+          </ol>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel glass">
+      <div class="actions-row" style="justify-content:space-between;">
+        <button class="btn ghost" id="prevStepBtn">السابق</button>
+        <button class="btn" id="nextStepBtn">التالي</button>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/public/js/setup.js"></script>
+</body>
+</html>

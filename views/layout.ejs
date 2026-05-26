@@ -1,0 +1,498 @@
+﻿<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title><%= pageTitle %> - <%= appName %></title>
+  <link rel="stylesheet" href="/public/css/style.css" />
+  <link rel="stylesheet" href="/public/css/dashboard.css" />
+</head>
+<body data-page="<%= activePage %>">
+  <div class="bg-shape bg-shape-1"></div>
+  <div class="bg-shape bg-shape-2"></div>
+
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <img src="/public/img/logo-placeholder.svg" alt="logo" />
+      <div>
+        <h2>Cars Space Agent</h2>
+        <p>لوحة الإدارة</p>
+      </div>
+    </div>
+
+    <nav class="menu">
+      <a href="/" class="menu-item <%= activePage === 'dashboard' ? 'active' : '' %>">الرئيسية</a>
+      <a href="/connection" class="menu-item <%= activePage === 'connection' ? 'active' : '' %>">اتصال واتساب</a>
+      <a href="/conversations" class="menu-item <%= activePage === 'conversations' ? 'active' : '' %>">المحادثات</a>
+      <a href="/rules" class="menu-item <%= activePage === 'rules' ? 'active' : '' %>">قواعد الردود</a>
+      <a href="/assistant" class="menu-item <%= activePage === 'assistant' ? 'active' : '' %>">شخصية المساعد</a>
+      <a href="/ai-brain" class="menu-item <%= activePage === 'ai-brain' ? 'active' : '' %>">عقل المساعد</a>
+      <a href="/settings" class="menu-item <%= activePage === 'settings' ? 'active' : '' %>">الإعدادات</a>
+      <a href="/logs" class="menu-item <%= activePage === 'logs' ? 'active' : '' %>">السجلات</a>
+      <a href="/analytics" class="menu-item <%= activePage === 'analytics' ? 'active' : '' %>">التحليلات</a>
+      <a href="/admin-groups" class="menu-item <%= activePage === 'admin-groups' ? 'active' : '' %>">مجموعات الإدارة</a>
+      <a href="/people" class="menu-item <%= activePage === 'people' ? 'active' : '' %>">الأشخاص والصلاحيات</a>
+    </nav>
+  </aside>
+
+  <main class="main">
+    <header class="topbar glass">
+      <div>
+        <h1><%= pageTitle %></h1>
+        <p class="sub">نظام تجريبي ذكي لإدارة رسائل واتساب الواردة</p>
+      </div>
+      <div class="top-actions">
+        <button id="themeToggle" class="btn ghost">تبديل النمط</button>
+        <span id="globalProviderBadge" class="status-pill warning">مزود الذكاء غير مختبر</span>
+        <span id="globalStatusBadge" class="status-pill warning">غير متصل بواتساب</span>
+      </div>
+    </header>
+
+    <% if (activePage === 'dashboard') { %>
+      <section class="cards-grid" id="dashboardCards"></section>
+      <section class="panel glass">
+        <div class="panel-head">
+          <h3>آخر الرسائل</h3>
+          <div class="quick-actions">
+            <a class="btn" href="/conversations">افتح المحادثات</a>
+            <a class="btn" href="/rules">أضف قاعدة رد</a>
+            <a class="btn" href="/settings">افتح الإعدادات</a>
+            <button class="btn warning" id="restartConnectionBtn">إعادة تشغيل الاتصال</button>
+          </div>
+        </div>
+        <div id="recentMessages" class="messages-preview empty">لا توجد بيانات حتى الآن</div>
+      </section>
+    <% } %>
+
+    <% if (activePage === 'connection') { %>
+      <section class="panel glass connection-wrap">
+        <div class="connection-box">
+          <h3>رمز QR</h3>
+          <div id="qrContainer" class="qr-area">بانتظار توليد رمز QR...</div>
+          <p id="connectionStatusText" class="status-text">غير متصل بواتساب</p>
+          <div class="actions-row">
+            <button class="btn" id="regenQrBtn">إعادة الاتصال</button>
+            <button class="btn danger" id="resetSessionBtn">حذف الجلسة</button>
+            <button class="btn warning" id="reconnectBtn">إعادة توليد QR</button>
+          </div>
+        </div>
+        <div class="connection-guide">
+          <h3>خطوات الربط</h3>
+          <ol>
+            <li>افتح واتساب على الجوال</li>
+            <li>ادخل إلى الأجهزة المرتبطة</li>
+            <li>اختر ربط جهاز</li>
+            <li>امسح الرمز الظاهر هنا</li>
+          </ol>
+        </div>
+      </section>
+    <% } %>
+
+    <% if (activePage === 'conversations') { %>
+      <section class="chat-layout glass">
+        <aside class="chat-list">
+          <div class="search-wrap">
+            <input id="conversationSearch" placeholder="ابحث في المحادثات" />
+          </div>
+          <div id="conversationItems" class="conversation-items"></div>
+        </aside>
+
+        <section class="chat-main">
+          <div id="chatEmpty" class="empty">اختر محادثة لعرض التفاصيل</div>
+          <div id="chatPanel" style="display:none">
+            <div class="chat-header">
+              <div>
+                <h3 id="chatContactName">-</h3>
+                <p id="chatContactJid">-</p>
+                <p id="chatMemoryMeta">النية: - | البيانات الناقصة: - | النبرة: -</p>
+              </div>
+              <div class="handoff-actions">
+                <button class="btn warning" id="handoffToggleBtn">تفعيل تدخل بشري</button>
+                <button class="btn" id="handoffBackBtn">إرجاع للمساعد الآلي</button>
+              </div>
+            </div>
+            <div id="chatMessages" class="chat-messages"></div>
+            <div class="reply-box">
+              <input id="manualReplyInput" placeholder="اكتب ردًا يدويًا" />
+              <button class="btn" id="sendManualReplyBtn">إرسال</button>
+            </div>
+          </div>
+        </section>
+      </section>
+    <% } %>
+
+    <% if (activePage === 'rules') { %>
+      <section class="panel glass">
+        <div class="panel-head">
+          <h3>قواعد الردود</h3>
+          <button class="btn" id="addRuleBtn">إضافة قاعدة</button>
+        </div>
+
+        <div id="rulesTableWrap" class="table-wrap"></div>
+
+        <div class="test-box glass-inner">
+          <h4>اختبار الرد</h4>
+          <input id="ruleTestInput" placeholder="اكتب رسالة تجريبية هنا" />
+          <button class="btn" id="testRuleBtn">اختبار الرد</button>
+          <div id="ruleTestOutput" class="test-output">لا يوجد اختبار بعد</div>
+        </div>
+      </section>
+
+      <div id="ruleModal" class="modal hidden">
+        <div class="modal-card">
+          <h3 id="ruleModalTitle">إضافة قاعدة</h3>
+          <form id="ruleForm">
+            <input type="hidden" id="ruleId" />
+            <label>اسم القاعدة<input id="ruleName" required /></label>
+            <label>مفعلة
+              <select id="ruleEnabled"><option value="1">نعم</option><option value="0">لا</option></select>
+            </label>
+            <label>الأولوية<input id="rulePriority" type="number" value="100" /></label>
+            <label>نوع المطابقة
+              <select id="ruleMatchType">
+                <option value="contains">contains</option>
+                <option value="equals">equals</option>
+                <option value="starts_with">starts_with</option>
+                <option value="regex">regex</option>
+                <option value="wildcard">wildcard</option>
+              </select>
+            </label>
+            <label>الكلمات المفتاحية<input id="ruleKeywords" placeholder="سعر,قطعة,صدام" /></label>
+            <label>الرد<textarea id="ruleReply" rows="4"></textarea></label>
+            <label>تأخير الرد بالثواني<input id="ruleDelay" type="number" value="0" /></label>
+            <label>تفعيل تدخل بشري عند التطابق
+              <select id="ruleHandoffOnMatch"><option value="0">لا</option><option value="1">نعم</option></select>
+            </label>
+            <label>قاعدة إجبارية (force_rule)
+              <select id="ruleForceRule"><option value="0">لا</option><option value="1">نعم</option></select>
+            </label>
+            <label>التصنيف
+              <select id="ruleCategory">
+                <option>أسعار</option><option>موقع</option><option>دوام</option><option>حجز</option>
+                <option>قطع غيار</option><option>ترحيب</option><option>شكوى</option><option>عام</option>
+              </select>
+            </label>
+            <div class="modal-actions">
+              <button type="submit" class="btn">حفظ</button>
+              <button type="button" class="btn ghost" id="closeRuleModalBtn">إلغاء</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    <% } %>
+
+    <% if (activePage === 'settings') { %>
+      <section class="panel glass">
+        <form id="settingsForm" class="settings-grid">
+          <label>اسم الشركة (عرض فقط)<input id="settingsCompanyDisplay" disabled /></label>
+          <label>رابط الشعار<input name="logo_url" /></label>
+          <label>اللغة الافتراضية<input name="default_language" value="ar" /></label>
+          <label>النمط
+            <select name="theme"><option value="auto">Auto</option><option value="light">Light</option><option value="dark">Dark</option></select>
+          </label>
+          <label>تفعيل السجلات
+            <select name="enable_logs"><option value="true">ON</option><option value="false">OFF</option></select>
+          </label>
+          <label>تفعيل التحليلات
+            <select name="enable_analytics"><option value="true">ON</option><option value="false">OFF</option></select>
+          </label>
+          <label>مسار الجلسة<input name="session_path" /></label>
+          <label>كلمة مرور الإدارة (Placeholder)<input name="admin_password" /></label>
+          <div class="full">
+            <a class="btn" href="/ai-brain">تعديل عقل المساعد</a>
+          </div>
+          <button class="btn full" type="submit">حفظ الإعدادات</button>
+        </form>
+      </section>
+    <% } %>
+
+    <% if (activePage === 'ai-brain') { %>
+      <section class="panel glass">
+        <form id="aiBrainProviderForm" class="settings-grid">
+          <h3 class="full">مزود الذكاء</h3>
+          <label>المزوّد
+            <select name="provider">
+              <option value="rules_only">rules_only</option>
+              <option value="openai">openai</option>
+              <option value="openrouter">openrouter</option>
+              <option value="deepseek">deepseek</option>
+              <option value="grok">grok</option>
+              <option value="google">google</option>
+              <option value="custom_openai_compatible">custom_openai_compatible</option>
+            </select>
+          </label>
+          <label>API Key (لن يظهر كاملًا)
+            <input name="apiKey" placeholder="اتركه فارغًا للإبقاء على المفتاح الحالي" />
+          </label>
+          <label>Base URL<input name="baseUrl" /></label>
+          <label>Model<input name="model" /></label>
+          <label>Temperature<input type="number" step="0.1" name="temperature" value="0.3" /></label>
+          <label>Max Output Tokens<input type="number" name="maxOutputTokens" value="1200" /></label>
+          <label>AI mode
+            <select name="aiMode">
+              <option value="rules_only">rules_only</option>
+              <option value="rules_first">rules_first</option>
+              <option value="ai_first">ai_first</option>
+              <option value="ai_only">ai_only</option>
+            </select>
+          </label>
+          <label>Context messages count<input type="number" name="context_messages_count" min="10" max="60" /></label>
+          <label>Enable memory
+            <select name="enable_memory"><option value="true">ON</option><option value="false">OFF</option></select>
+          </label>
+          <label>Enable voice transcription
+            <select name="enable_voice_transcription"><option value="true">ON</option><option value="false">OFF</option></select>
+          </label>
+          <label>Enable image analysis
+            <select name="enable_image_analysis"><option value="true">ON</option><option value="false">OFF</option></select>
+          </label>
+          <label>Enable typing simulation
+            <select name="enable_typing_simulation"><option value="true">ON</option><option value="false">OFF</option></select>
+          </label>
+          <label>تفعيل AI
+            <select name="enabled"><option value="true">ON</option><option value="false">OFF</option></select>
+          </label>
+          <div class="full actions-row">
+            <span id="providerMaskedHint" class="status-pill warning">مزود غير مختبر</span>
+            <button type="button" class="btn warning" id="aiProviderTestBtn">اختبار الاتصال</button>
+            <button type="submit" class="btn">حفظ إعدادات المزود</button>
+          </div>
+          <div class="full empty" id="aiModeDescription" style="text-align:right;">الذكاء أولًا: يتم استخدام النموذج لفهم السياق والرد الطبيعي، مع استخدام القواعد للحماية والتحويل والمعلومات الثابتة.</div>
+          <div class="full actions-row">
+            <button type="button" class="btn ghost" id="showEffectiveSettingsBtn">عرض الإعدادات الفعلية</button>
+          </div>
+          <div class="full test-output" id="effectiveSettingsOutput">لا توجد بيانات حتى الآن</div>
+        </form>
+      </section>
+
+      <section class="panel glass">
+        <form id="aiBrainForm" class="settings-grid">
+          <h3 class="full">شخصية المساعد</h3>
+          <label>اسم المساعد<input name="assistant_name" /></label>
+          <label>نبرة الرد
+            <select name="assistant_tone">
+              <option>رسمي</option><option>مختصر</option><option>ودود</option><option>مبيعات</option><option>دعم فني</option>
+            </select>
+          </label>
+          <label class="full">System Prompt<textarea name="assistant_prompt" rows="8"></textarea></label>
+          <label class="full">سياسة الرد<textarea name="assistant_reply_policy" rows="3"></textarea></label>
+          <label class="full">معرفة السيارات وقطع الغيار<textarea name="assistant_car_knowledge_behavior" rows="3"></textarea></label>
+
+          <h3 class="full">معلومات الشركة</h3>
+          <label>اسم الشركة<input name="company_name" /></label>
+          <label>رقم التواصل<input name="contact_number" /></label>
+          <label class="full">مجال العمل<textarea name="business_description" rows="2"></textarea></label>
+
+          <h3 class="full">الأشخاص والمسؤولون</h3>
+          <label>المدير العام<input name="general_manager" /></label>
+          <label>مسؤول جهة الشركة<input name="company_responsible" /></label>
+          <label>مدير المركز الحالي<input name="center_manager_current" /></label>
+          <label class="full">ملاحظات داخلية لمدير المركز<textarea name="center_manager_notes" rows="2"></textarea></label>
+
+          <h3 class="full">المواقع والفروع</h3>
+          <label>عنوان موقع الشركة<input name="company_location_title" /></label>
+          <label>رابط موقع الشركة<input name="company_location_url" /></label>
+          <label>عنوان موقع المركز<input name="center_location_title" /></label>
+          <label>رابط موقع المركز<input name="center_location_url" /></label>
+
+          <h3 class="full">إعدادات تشغيل المساعد</h3>
+          <label>تفعيل المساعد
+            <select name="assistant_enabled"><option value="true">ON</option><option value="false">OFF</option></select>
+          </label>
+          <label>تفعيل القواعد
+            <select name="rules_enabled"><option value="true">ON</option><option value="false">OFF</option></select>
+          </label>
+          <label>تأخير الرد بالثواني<input type="number" name="assistant_reply_delay_seconds" /></label>
+          <label>حد الردود بالساعة<input type="number" name="assistant_max_replies_per_hour" /></label>
+          <label class="full">كلمات التحويل التلقائي<textarea name="assistant_auto_handoff_keywords" rows="2"></textarea></label>
+          <label class="full">رد الترحيب<textarea name="welcome_reply" rows="2"></textarea></label>
+          <label class="full">رد fallback<textarea name="fallback_reply" rows="2"></textarea></label>
+          <button class="btn full" type="submit">حفظ بيانات عقل المساعد</button>
+        </form>
+      </section>
+
+      <section class="panel glass">
+        <div class="panel-head">
+          <h3>قاعدة المعرفة</h3>
+          <button class="btn" id="addKnowledgeBtn">إضافة إدخال معرفة</button>
+        </div>
+        <div id="knowledgeTableWrap" class="table-wrap"></div>
+      </section>
+
+      <section class="panel glass">
+        <h3>اختبار المساعد</h3>
+        <div class="test-box">
+          <input id="aiTestInput" placeholder="رسالة عميل تجريبية" />
+          <button class="btn" id="aiTestBtn">اختبار المساعد</button>
+          <div id="aiTestOutput" class="test-output">لا يوجد اختبار بعد</div>
+        </div>
+      </section>
+
+      <div id="knowledgeModal" class="modal hidden">
+        <div class="modal-card">
+          <h3 id="knowledgeModalTitle">إضافة معرفة</h3>
+          <form id="knowledgeForm">
+            <input type="hidden" id="knowledgeId" />
+            <label>العنوان<input id="knowledgeTitle" required /></label>
+            <label>التصنيف<input id="knowledgeCategory" required /></label>
+            <label>المحتوى<textarea id="knowledgeContent" rows="5" required></textarea></label>
+            <label>مفعلة
+              <select id="knowledgeEnabled"><option value="1">نعم</option><option value="0">لا</option></select>
+            </label>
+            <div class="modal-actions">
+              <button type="submit" class="btn">حفظ</button>
+              <button type="button" class="btn ghost" id="closeKnowledgeModalBtn">إلغاء</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    <% } %>
+
+    <% if (activePage === 'logs') { %>
+      <section class="panel glass">
+        <div class="panel-head">
+          <h3>السجلات</h3>
+          <div class="actions-row">
+            <input id="logsSearch" placeholder="بحث في السجلات" />
+            <select id="logsLevel"><option value="">كل المستويات</option><option value="info">info</option><option value="warning">warning</option><option value="error">error</option></select>
+            <button class="btn" id="logsFilterBtn">تصفية</button>
+            <button class="btn warning" id="exportLogsBtn">تصدير JSON</button>
+            <button class="btn danger" id="clearLogsBtn">مسح السجلات</button>
+          </div>
+        </div>
+        <div id="logsTableWrap" class="table-wrap"></div>
+      </section>
+    <% } %>
+
+    <% if (activePage === 'analytics') { %>
+      <section class="cards-grid" id="analyticsCards"></section>
+      <section class="panel glass">
+        <h3>توزيع الرسائل بالساعة</h3>
+        <div id="hourlyChart" class="bar-chart"></div>
+      </section>
+      <section class="panel glass split">
+        <div>
+          <h3>أكثر النوايا/الطلبات</h3>
+          <div id="intentStats" class="list-stats"></div>
+        </div>
+        <div>
+          <h3>إحصاءات الوسائط</h3>
+          <div id="mediaStats" class="list-stats"></div>
+        </div>
+      </section>
+      <section class="panel glass split">
+        <div>
+          <h3>أكثر القواعد تطابقًا</h3>
+          <div id="rulesStats" class="list-stats"></div>
+        </div>
+        <div>
+          <h3>أكثر العملاء نشاطًا</h3>
+          <div id="contactsStats" class="list-stats"></div>
+        </div>
+      </section>
+    <% } %>
+
+    <% if (activePage === 'admin-groups') { %>
+      <section class="panel glass">
+        <div class="panel-head">
+          <h3>المجموعات المكتشفة</h3>
+          <button class="btn" id="refreshAdminGroupsBtn">تحديث</button>
+        </div>
+        <div id="adminGroupsWrap" class="table-wrap"></div>
+      </section>
+      <section class="panel glass">
+        <h3>سجلات التقارير</h3>
+        <div id="adminReportsLogWrap" class="table-wrap"></div>
+      </section>
+    <% } %>
+
+    <% if (activePage === 'people') { %>
+      <section class="panel glass">
+        <div class="panel-head">
+          <h3>قائمة الأشخاص</h3>
+          <div class="actions-row">
+            <input id="peopleSearch" placeholder="بحث بالاسم أو الرقم أو الدور" />
+            <select id="peopleRoleFilter"><option value="">كل الأدوار</option></select>
+            <select id="peopleStatusFilter"><option value="">كل الحالات</option><option value="true">مفعل</option><option value="false">غير مفعل</option></select>
+            <select id="peopleVipFilter"><option value="">VIP الكل</option><option value="true">VIP فقط</option><option value="false">غير VIP</option></select>
+            <button class="btn" id="refreshPeopleBtn">تحديث</button>
+            <button class="btn" id="addPersonBtn">إضافة شخص</button>
+          </div>
+        </div>
+        <div id="peopleTableWrap" class="table-wrap"></div>
+      </section>
+
+      <section class="panel glass split">
+        <div>
+          <h3>اختبار التعرف</h3>
+          <div class="test-box">
+            <input id="identityTestInput" placeholder="أدخل رقم أو JID" />
+            <button class="btn" id="identityTestBtn">اختبار التعرف</button>
+            <div id="identityTestOutput" class="test-output">لا يوجد اختبار بعد</div>
+          </div>
+        </div>
+        <div>
+          <h3>سجل تدقيق الأشخاص</h3>
+          <div id="peopleAuditWrap" class="table-wrap"></div>
+        </div>
+      </section>
+
+      <div id="personModal" class="modal hidden">
+        <div class="modal-card">
+          <h3 id="personModalTitle">إضافة شخص</h3>
+          <form id="personForm" class="settings-grid">
+            <input type="hidden" id="personId" />
+            <label>الاسم الكامل<input id="personFullName" required /></label>
+            <label>اسم النداء<input id="personPreferredName" /></label>
+            <label>المسمى الوظيفي<input id="personTitle" /></label>
+            <label>الدور<select id="personRole"></select></label>
+            <label>رقم واتساب<input id="personPhone" required /></label>
+            <label>تفعيل في الخاص<select id="personPrivateEnabled"><option value="1">نعم</option><option value="0">لا</option></select></label>
+            <label>تفعيل في المجموعات<select id="personGroupEnabled"><option value="1">نعم</option><option value="0">لا</option></select></label>
+            <label>VIP<select id="personVip"><option value="0">لا</option><option value="1">نعم</option></select></label>
+            <label>أسلوب الترحيب<input id="personGreetingStyle" placeholder="مهني/تنفيذي/تقني" /></label>
+            <label class="full">ملاحظات<textarea id="personNotes" rows="2"></textarea></label>
+
+            <h4 class="full">الصلاحيات</h4>
+            <div id="personPermissionsWrap" class="full"></div>
+
+            <h4 class="full">سياسة التعامل</h4>
+            <label>نبرة الرد في الخاص<input id="policyPrivateTone" value="مهني ولبق" /></label>
+            <label>نبرة الرد في المجموعات<input id="policyGroupTone" value="مهني مختصر" /></label>
+            <label class="full">تحية مخصصة<input id="policyCustomGreeting" /></label>
+            <label class="full">تعليمات مخصصة<textarea id="policyCustomInstruction" rows="2"></textarea></label>
+            <label>مستوى التفاصيل
+              <select id="policyDetailLevel">
+                <option>مختصر</option><option>متوسط</option><option>تفصيلي</option><option>تنفيذي</option><option>تقني عميق</option>
+              </select>
+            </label>
+            <label>إظهار أرقام كاملة<select id="policyFullNumbers"><option value="0">OFF</option><option value="1">ON</option></select></label>
+            <label>تقارير حساسة<select id="policySensitive"><option value="0">OFF</option><option value="1">ON</option></select></label>
+            <label>تقارير مالية<select id="policyFinancial"><option value="0">OFF</option><option value="1">ON</option></select></label>
+            <label>تقارير تقنية<select id="policyTechnical"><option value="0">OFF</option><option value="1">ON</option></select></label>
+            <label>بحث العملاء<select id="policyCustomerLookup"><option value="0">OFF</option><option value="1">ON</option></select></label>
+            <label>بحث المحادثات<select id="policyConversationLookup"><option value="0">OFF</option><option value="1">ON</option></select></label>
+            <label>التحكم بالمساعد<select id="policyBotControl"><option value="0">OFF</option><option value="1">ON</option></select></label>
+
+            <div class="modal-actions full">
+              <button type="submit" class="btn">حفظ</button>
+              <button type="button" class="btn ghost" id="closePersonModalBtn">إلغاء</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    <% } %>
+  </main>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/public/js/socket.js"></script>
+  <script src="/public/js/app.js"></script>
+  <script src="/public/js/rules.js"></script>
+  <script src="/public/js/settings.js"></script>
+  <script src="/public/js/conversations.js"></script>
+  <script src="/public/js/ai-brain.js"></script>
+  <script src="/public/js/people.js"></script>
+</body>
+</html>

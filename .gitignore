@@ -1,0 +1,10 @@
+﻿node_modules
+.env
+server/database/database.sqlite
+server/database/database.sqlite-shm
+server/database/database.sqlite-wal
+storage/sessions/*
+!storage/sessions/.gitkeep
+storage/logs/*
+!storage/logs/.gitkeep
+npm-debug.log*
