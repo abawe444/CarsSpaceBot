@@ -19,4 +19,4 @@ jobs:
           username: ${{ secrets.VPS_USERNAME }}
           key: ${{ secrets.SSH_S_K }}
           source: "."
-          target: "/var/www/html/your_project_folder"
+          target: "/srv/apps/carsspacebot/source"
